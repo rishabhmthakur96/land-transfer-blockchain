@@ -45,6 +45,9 @@ app.refresh = function () {
     // Populate transfer list for selected user
     transfers.filter(transfer => transfer.owner === this.user.public)
       .forEach(transfer => addAction('#transferList', transfer.asset, 'Accept'))
+    
+    transfers.filter(transfer => transfer.owner === this.user.public)
+      .forEach(transfer => addAction('#transferList', transfer.asset, 'Acknowledge'))
 
     // Populate transfer select with both local and blockchain keys
     let publicKeys = this.keys.map(pair => pair.public)
@@ -94,6 +97,11 @@ $('#transferSubmit').on('click', function () {
 })
 
 // Accept Asset
+$('#transferList').on('click', '.acknowledge', function () {
+  const asset = $(this).prev().text()
+  if (asset) app.update('acknowledge', asset)
+})
+
 $('#transferList').on('click', '.accept', function () {
   const asset = $(this).prev().text()
   if (asset) app.update('accept', asset)
