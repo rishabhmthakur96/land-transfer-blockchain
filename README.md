@@ -1,5 +1,3 @@
-# Transfer Chain JS
-
 ## Installation
 
 This project requires both [Docker](https://www.docker.com/) and
