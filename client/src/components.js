@@ -18,9 +18,8 @@ const addRow = (parent, ...cells) => {
 const addAction = (parent, label, action) => {
   $(parent).append(`<div>
   <span>${label}</span>
-  <input class="acknowledge" type="button" value="Acknowledge">
-  <input class="accept" type="button" value="Accept">
-  <input class="reject" type="button" value="Reject">
+  <input class="${action.toLowerCase()}" type="button" value="${action.toUpperCase()}">
+  <input class="reject" type="button" value="REJECT">
 </div>`)
 }
 

@@ -31,6 +31,7 @@ app.refresh = function () {
     // Clear existing data views
     $('#assetList').empty()
     $('#transferList').empty()
+    $('#pendingList').empty()
     $('[name="assetSelect"]').children().slice(1).remove()
     $('[name="transferSelect"]').children().slice(1).remove()
 
@@ -43,11 +44,10 @@ app.refresh = function () {
     })
 
     // Populate transfer list for selected user
-    transfers.filter(transfer => transfer.owner === this.user.public)
-      .forEach(transfer => addAction('#transferList', transfer.asset, 'Accept'))
-    
-    transfers.filter(transfer => transfer.owner === this.user.public)
-      .forEach(transfer => addAction('#transferList', transfer.asset, 'Acknowledge'))
+
+    transfers.forEach(transfer => addAction('#transferList', transfer.asset, 'Acknowledge'))
+
+    transfers.filter(transfer => addAction('#pendingList', transfer.name, 'Accept'))
 
     // Populate transfer select with both local and blockchain keys
     let publicKeys = this.keys.map(pair => pair.public)
@@ -102,7 +102,7 @@ $('#transferList').on('click', '.acknowledge', function () {
   if (asset) app.update('acknowledge', asset)
 })
 
-$('#transferList').on('click', '.accept', function () {
+$('#pendingList').on('click', '.accept', function () {
   const asset = $(this).prev().text()
   if (asset) app.update('accept', asset)
 })

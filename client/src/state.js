@@ -50,8 +50,9 @@ const getState = cb => {
     cb(data.reduce((processed, datum) => {
       if (datum.data !== '') {
         const parsed = JSON.parse(atob(datum.data))
-        if (datum.address[7] === '0') processed.assets.push(parsed)
-        if (datum.address[7] === '1') processed.transfers.push(parsed)
+        console.log(processed)
+        if (`${datum.address[6]}${datum.address[7]}` === '00') processed.assets.push(parsed)
+        if (`${datum.address[6]}${datum.address[7]}` === '10' || `${datum.address[6]}${datum.address[7]}` === '11' || `${datum.address[6]}${datum.address[7]}` === '12') processed.transfers.push(parsed)
       }
       return processed
     }, {assets: [], transfers: []}))

@@ -47,6 +47,7 @@ const transferAsset = (asset, owner, signer, state) => {
   const address = getTransferAddress(asset)
   const acknAddress = getTransferAcknAddress(asset)
   const assetAddress = getAssetAddress(asset)
+  console.log(getRegulatorAddress)
 
   return state.get([assetAddress])
     .then(entries => {
@@ -54,13 +55,13 @@ const transferAsset = (asset, owner, signer, state) => {
       if (!entry || entry.length === 0) {
         throw new InvalidTransaction('Asset does not exist')
       }
-
-      if (signer !== decode(entry).owner) {
+      const data = decode(entry);
+      if (signer !== data.owner) {
         throw new InvalidTransaction('Only an Asset\'s owner may transfer it')
       }
 
       return state.set({
-        [acknAddress]: encode({ asset, owner})
+        [acknAddress]: encode({ asset, owner })
       })
     })
 }
@@ -68,14 +69,14 @@ const transferAsset = (asset, owner, signer, state) => {
 // Acknowledge a transfer as a purchasee, clearing it and initiating changing asset ownership
 const acknowledgeTransfer = (asset, signer, state) => {
   const acknAddress = getTransferAcknAddress(asset)
-  const address = getTransferAddress(asset)
+  const approveAddress = getTransferApproveAddress(asset)
 
   return state.get([acknAddress])
     .then(entries => {
       const entry = entries[acknAddress]
       if (!entry || entry.length === 0) {
-         throw new InvalidTransaction('Asset is not being transfered')
-       }
+        throw new InvalidTransaction('Asset is not being transfered')
+      }
 
       if (signer !== decode(entry).owner) {
         throw new InvalidTransaction(
@@ -85,30 +86,36 @@ const acknowledgeTransfer = (asset, signer, state) => {
 
       return state.set({
         [acknAddress]: Buffer(0),
-        [getTransferApproveAddress(asset)]: encode({ name: asset, owner: signer })
+        [approveAddress]: encode({ name: asset, owner: signer })
       })
     })
 }
 
 // Accept a transfer as a regulator, clearing it and changing asset ownership
-const acceptTransfer = (asset, signer, state) => {
+const acceptTransfer = (asset, signer, isRegulator, state) => {
   const acknAddress = getTransferAcknAddress(asset)
-  const address = getTransferAddress(asset)
+  const approveAddress = getTransferApproveAddress(asset)
+  const transferAddress = getTransferAddress(asset)
+  const address = getAssetAddress(asset);
+  const regulator = getRegulatorAddress(signer)
 
-  return state.get([acknAddress])
+  return state.get([approveAddress])
     .then(entries => {
-      const entry = entries[address]
-      const regularEntry = entries[getRegulatorAddress(signer)]
+      const entry = entries[approveAddress]
+      const regularEntry = entries[regulator]
+      console.log(regularEntry)
       if (!entry || entry.length === 0) {
-         throw new InvalidTransaction('Asset is not being transfered')
+        throw new InvalidTransaction('Asset is not being transfered')
       }
-      if (!regularEntry || regularEntry.length === 0) {
+      const data = decode(entry);
+      if (!isRegulator && (!regularEntry || regularEntry.length === 0)) {
         throw new InvalidTransaction('You are not a regulator')
       }
 
       return state.set({
-        [address]: encode({ name: asset, owner: signer }),
-        [getTransferApproveAddress(asset)]: Buffer(0)
+        [approveAddress]: Buffer(0),
+        [transferAddress]: Buffer(0),
+        [address]: encode(data),
       })
     })
 }
@@ -120,9 +127,9 @@ const rejectTransfer = (asset, signer, state) => {
   return state.get([address])
     .then(entries => {
       const entry = entries[address]
-      // if (!entry || entry.length === 0) {
-      //   throw new InvalidTransaction('Asset is not being transfered')
-      // }
+      if (!entry || entry.length === 0) {
+        throw new InvalidTransaction('Asset is not being transfered')
+      }
 
       if (signer !== decode(entry).owner) {
         throw new InvalidTransaction(
@@ -156,7 +163,7 @@ class JSONHandler extends TransactionHandler {
     if (action === 'create') return createAsset(asset, signer, state)
     if (action === 'transfer') return transferAsset(asset, owner, signer, state)
     if (action === 'acknowledge') return acknowledgeTransfer(asset, signer, state)
-    if (action === 'accept') return acceptTransfer(asset, signer, state)
+    if (action === 'accept') return acceptTransfer(asset, signer, true, state)
     if (action === 'reject') return rejectTransfer(asset, signer, state)
 
     return Promise.resolve().then(() => {
