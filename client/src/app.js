@@ -35,8 +35,10 @@ app.refresh = function () {
     $('[name="assetSelect"]').children().slice(1).remove()
     $('[name="transferSelect"]').children().slice(1).remove()
 
+    var name = ''
     // Populate asset views
     assets.forEach(asset => {
+      name = asset.name
       addRow('#assetList', asset.name, asset.owner)
       if (this.user && asset.owner === this.user.public) {
         addOption('[name="assetSelect"]', asset.name)
@@ -45,7 +47,7 @@ app.refresh = function () {
 
     // Populate transfer list for selected user
 
-    transfers.forEach(transfer => addAction('#transferList', transfer.asset, 'Acknowledge'))
+    transfers.forEach(transfer => addAction('#transferList', name, 'Acknowledge'))
 
     transfers.filter(transfer => addAction('#pendingList', transfer.name, 'Accept'))
 
@@ -94,17 +96,20 @@ $('#transferSubmit').on('click', function () {
   const asset = $('[name="assetSelect"]').val()
   const owner = $('[name="transferSelect"]').val()
   if (asset && owner) app.update('transfer', asset, owner)
+  window.alert("Transfer Initiated Successfully")
 })
 
 // Accept Asset
 $('#transferList').on('click', '.acknowledge', function () {
   const asset = $(this).prev().text()
   if (asset) app.update('acknowledge', asset)
+  window.alert("Transfer Acknowledged by Buyer Successfully")
 })
 
 $('#pendingList').on('click', '.accept', function () {
   const asset = $(this).prev().text()
   if (asset) app.update('accept', asset)
+  window.alert("Transfer Approved Successfully")
 })
 
 $('#transferList').on('click', '.reject', function () {
